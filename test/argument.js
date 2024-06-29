@@ -39,7 +39,7 @@ const argArray = [
   "   - a",
   "   - a",
   "    - a",
-  "     - a",
+  "      - a",
   "      - a",
   "       - a",
   "      - a",
@@ -55,6 +55,6 @@ const argArray = [
 ];
 
 const argStr =
-  "#    マークダウンの校正アイデア\n\n参考 url\rhttps://qiita.com/tbpgr/items/989c6badefff69377da7\n**まず初めにインデントの統一をする**\r\r##見出し\n\n###修正\n\n-     1\n  - 2\n    -3\n\n1. a\n2.b\n3.c\n>>>>>>>      123\n>  12\n\n>>1\n>>a\n>> b";
+  "#    マークダウンの校正アイデア\n\n 参考 url\n https://qiita.com/tbpgr/items/989c6badefff69377da7\n**まず初めにインデントの統一をする**\n\n ##見出し\n\n###修正\n\n-     1\n  - 2\n    -3\n\n 1. a\n    2.b\n     1.c\n         - c\n\n       1.c\n       - c\n    1.c\n 1. a\n    - b\n     - c\n         - c\n\n         - c\n        1.c\n      1.c\naaa\n     - a\n   - a\n   - a\n    - a\n     - a\n      - a\n       - a\n      - a\n     - a\n    - a\n  - a\n>>>>>>>      123\n >  12\n\n>>1\n>>a\n>> b";
 
 export { argArray, argStr };
