@@ -5,9 +5,9 @@ export class SuggestUtil {
   constructor() {
     /**
      * エラー文の入る配列
-     * @type {string}
+     * @type {{index: text}}
      */
-    this.errors = [];
+    this.errors = {};
   }
 
   /**
@@ -20,7 +20,15 @@ export class SuggestUtil {
 
     sMd.#FixDoubleBlockquotes(orgLines);
 
-    return sMd;
+    return sMd.errors;
+  }
+
+  #push(index, text) {
+    if (this.errors[index]) {
+      this.errors[index].push(text);
+    } else {
+      this.errors[index] = [text];
+    }
   }
 
   /**
@@ -39,7 +47,7 @@ export class SuggestUtil {
       if (quoteRegex.test(line) && isFirstQuote) {
         if (outRegex.test(line)) {
           // errortextをpush
-          this.errors[index] = `2重引用で始まっています`;
+          this.#push(index, "2重引用ではじまっています");
         }
         isFirstQuote = false;
       } else if (!quoteRegex.test(line)) {
