@@ -9,6 +9,7 @@ export class ProofreadUtil {
 
     orgLines = pMd.#AdjustListIndentation(orgLines);
     orgLines = pMd.#AddSpaceSymbols(orgLines);
+    orgLines = pMd.#unifyBulletListSymbols(orgLines);
 
     return orgLines;
   }
@@ -68,20 +69,33 @@ export class ProofreadUtil {
    */
   #AddSpaceSymbols(orgLines) {
     /**
-     * regex: 正規表現パターン
-     * replacement: 置換用の文字列
-     * @type {{regex: pattern, replacement: string}}
+     * 正規表現パターンと置換方法のリスト
+     * @type {Array<{regex: RegExp, replacement: string}>}
      */
+    /*
     const patterns = [
       // 中間の( *)は既にスペースが入っていることを考慮している
-      { regex: /^([-*+]{2,})( *)(\S)/, replacement: "$1$3" }, // 2個以上の場合は強調か水平線になるのでskip
+      { regex: /^([-*+]{2,})\s*(\S)/, replacement: "$1$2" }, // 2個以上の場合は強調か水平線になるのでskip
       // 箇条書きリストと番号付きリストは
       // インデントを考慮する必要があるので
       // 任意の数の空白を最初に入れる
-      { regex: /^( *)([-*+]{1})( *)(\S)/, replacement: "$1$2 $4" }, // 箇条書き
-      { regex: /^( *)(\d+\.)( *)(\S)/, replacement: "$1$2 $4" }, // 番号付きリスト
-      { regex: /^(#{1,6})( *)(\S)/, replacement: "$1 $3" }, //見出し
-      { regex: /^(>+)( *)(\S)/, replacement: "$1 $3" }, // 引用
+      { regex: /^( *)([-*+]{1})\s*(\S)/, replacement: "$1$2 $3" }, // 箇条書き
+      { regex: /^( *)(\d+\.)\s*(\S)/, replacement: "$1$2 $3" }, // 番号付きリスト
+      { regex: /^(#{1,6})\s*(\S)/, replacement: "$1 $2" }, //見出し
+      { regex: /^(>+)\s*(\S)/, replacement: "$1 $2" }, // 引用
+    ];
+    */
+
+    const patterns = [
+      // 中間の( *)は既にスペースが入っていることを考慮している
+      { regex: /^([-*+]{2,})(\s*)/, replacement: "$1$2" }, // 2個以上の場合は強調か水平線になるのでskip
+      // 箇条書きリストと番号付きリストは
+      // インデントを考慮する必要があるので
+      // 任意の数の空白を最初に入れる
+      { regex: /^( *)([-*+]{1})\s*/, replacement: "$1$2 " }, // 箇条書き
+      { regex: /^( *)(\d+\.)\s*/, replacement: "$1$2 " }, // 番号付きリスト
+      { regex: /^(#{1,6})\s*/, replacement: "$1 " }, //見出し
+      { regex: /^(>+)\s*/, replacement: "$1 " }, // 引用
     ];
 
     return orgLines.map((line) => {
@@ -94,6 +108,18 @@ export class ProofreadUtil {
         }
       }
       return line;
+    });
+  }
+
+  /**
+   * Markdownテキストの箇条書きリストの記号をハイフンに統一します。
+   * @param {string[]} orgLines - Markdown形式のテキストの各行を含む配列
+   * @returns {string[]} - 記号が統一されたMarkdown形式のテキストの各行を含む配列
+   */
+  #unifyBulletListSymbols(orgLines) {
+    return orgLines.map((line) => {
+      if (/^\*{2,}/.test(line.replace(/\s/, ""))) return line;
+      return line.replace(/^(\s*)([*+])(\s+)/, "$1-$3");
     });
   }
 }
