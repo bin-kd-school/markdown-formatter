@@ -72,20 +72,6 @@ export class ProofreadUtil {
      * 正規表現パターンと置換方法のリスト
      * @type {Array<{regex: RegExp, replacement: string}>}
      */
-    /*
-    const patterns = [
-      // 中間の( *)は既にスペースが入っていることを考慮している
-      { regex: /^([-*+]{2,})\s*(\S)/, replacement: "$1$2" }, // 2個以上の場合は強調か水平線になるのでskip
-      // 箇条書きリストと番号付きリストは
-      // インデントを考慮する必要があるので
-      // 任意の数の空白を最初に入れる
-      { regex: /^( *)([-*+]{1})\s*(\S)/, replacement: "$1$2 $3" }, // 箇条書き
-      { regex: /^( *)(\d+\.)\s*(\S)/, replacement: "$1$2 $3" }, // 番号付きリスト
-      { regex: /^(#{1,6})\s*(\S)/, replacement: "$1 $2" }, //見出し
-      { regex: /^(>+)\s*(\S)/, replacement: "$1 $2" }, // 引用
-    ];
-    */
-
     const patterns = [
       // 中間の( *)は既にスペースが入っていることを考慮している
       { regex: /^([-*+]{2,})(\s*)/, replacement: "$1$2" }, // 2個以上の場合は強調か水平線になるのでskip

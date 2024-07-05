@@ -16,24 +16,24 @@ export class MdFmtr {
      */
     this.orgMdText = markdownText;
 
-    /**
-     * fixed markdown text
-     * @type {string}
-     */
-    this.fixedMdText = "";
-
-    this.errors = [];
-
     // 一番最初に文字列を配列へ
     let mdArray = markdownText.split(/[\n|\r]/);
 
     // 修正
     mdArray = ProofreadUtil.all(mdArray);
+    // 最終的に文字列に直す
+    /**
+     * fixed markdown text
+     * @type {string}
+     */
+    this.fixedMdText = mdArray.join("\n");
 
     // 期待
+    /**
+     * @type {Object<string, string[]>}
+     * @key {string} 行の番号
+     * @value {string[]} 指定行に対するエラー分
+     */
     this.errors = SuggestUtil.all(mdArray);
-
-    // 最終的に文字列に直す
-    this.fixedMdText = mdArray.join("\n");
   }
 }

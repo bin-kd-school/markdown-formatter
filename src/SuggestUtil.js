@@ -5,15 +5,15 @@ export class SuggestUtil {
   constructor() {
     /**
      * エラー文の入る配列
-     * @type {{index: text}}
+     * @type {Object<string, string[]>} key: 行の番号, value: 指定行に対するエラー分
      */
     this.errors = {};
   }
 
   /**
    * このクラスの全メソッドを実行する
-   * @param {string[]} orgLines - 修正対象のMarkdownテキストを改行で分割した配列
-   * @returns {string[]} - エラー分の入った配列
+   * @param {string[]} orgLines 修正対象のMarkdownテキストを改行で分割した配列
+   * @returns {Object<string, string[]>} key: 行の番号, value: 指定行に対するエラー分
    */
   static all(orgLines) {
     const sMd = new SuggestUtil();
