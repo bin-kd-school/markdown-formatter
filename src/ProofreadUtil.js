@@ -1,3 +1,5 @@
+import { ValidateMd } from "./ValidateMd.js";
+
 export class ProofreadUtil {
   /**
    * このクラスの全メソッドを実行する
@@ -9,7 +11,8 @@ export class ProofreadUtil {
 
     orgLines = pMd.#AdjustListIndentation(orgLines);
     orgLines = pMd.#AddSpaceSymbols(orgLines);
-    orgLines = pMd.#unifyBulletListSymbols(orgLines);
+    orgLines = pMd.#UnifyHorizontalLines(orgLines);
+    orgLines = pMd.#UnifyBulletListSymbols(orgLines);
 
     return orgLines;
   }
@@ -30,7 +33,11 @@ export class ProofreadUtil {
       const leadingSpaces = line.length - trimedLine.length;
 
       // 改行のみと強調や水平線の場合は現状のまま返す
-      if (trimedLine.length == 0 || /^[*+-]{2,}/.test(trimedLine)) {
+      if (
+        trimedLine.length == 0 ||
+        ValidateMd.isStartWithEmphasis(line) ||
+        ValidateMd.isHorizon(line)
+      ) {
         return trimedLine;
       }
 
@@ -73,8 +80,6 @@ export class ProofreadUtil {
      * @type {Array<{regex: RegExp, replacement: string}>}
      */
     const patterns = [
-      // 中間の( *)は既にスペースが入っていることを考慮している
-      { regex: /^([-*+]{2,})(\s*)/, replacement: "$1$2" }, // 2個以上の場合は強調か水平線になるのでskip
       // 箇条書きリストと番号付きリストは
       // インデントを考慮する必要があるので
       // 任意の数の空白を最初に入れる
@@ -85,13 +90,34 @@ export class ProofreadUtil {
     ];
 
     return orgLines.map((line) => {
-      for (let pattern of patterns) {
-        // 2文字以上の場合
-        if (line.length > 1 && pattern.regex.test(line)) {
-          line = line.replace(pattern.regex, pattern.replacement);
-          // 処理を中断し、次の行へ
-          break;
+      if (
+        !ValidateMd.isStartWithEmphasis(line) &&
+        !ValidateMd.isHorizon(line)
+      ) {
+        for (let pattern of patterns) {
+          // 2文字以上の場合
+          if (line.length > 1 && pattern.regex.test(line)) {
+            line = line.replace(pattern.regex, pattern.replacement);
+            // 処理を中断し、次の行へ
+            break;
+          }
         }
+      }
+      return line;
+    });
+  }
+
+  /**
+   * Markdownの水平線をハイフンに統一します
+   * @param {string[]} orgLines - Markdown形式のテキストの各行を含む配列
+   * @returns {string[]} - 水平線がハイフンで統一されたMarkdown形式のテキストの各行を含む配列
+   */
+  #UnifyHorizontalLines(orgLines) {
+    return orgLines.map((line) => {
+      // 水平線をチェックする正規表現
+      if (ValidateMd.isHorizon(line)) {
+        // ハイフンで水平線を作成
+        return "---";
       }
       return line;
     });
@@ -102,9 +128,9 @@ export class ProofreadUtil {
    * @param {string[]} orgLines - Markdown形式のテキストの各行を含む配列
    * @returns {string[]} - 記号が統一されたMarkdown形式のテキストの各行を含む配列
    */
-  #unifyBulletListSymbols(orgLines) {
+  #UnifyBulletListSymbols(orgLines) {
     return orgLines.map((line) => {
-      if (/^\*{2,}/.test(line.replace(/\s/, ""))) return line;
+      if (ValidateMd.isStartWithEmphasis(line)) return line;
       return line.replace(/^(\s*)([*+])(\s+)/, "$1-$3");
     });
   }

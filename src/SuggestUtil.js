@@ -21,6 +21,7 @@ export class SuggestUtil {
     sMd.#FixDoubleBlockquotes(orgLines);
     sMd.#CheckBacktickBalance(orgLines);
     sMd.#CheckDuplicateHeadings(orgLines);
+    sMd.#CheckHeadingForContent(orgLines);
 
     return sMd.errors;
   }
@@ -33,6 +34,18 @@ export class SuggestUtil {
     }
   }
 
+  /**
+   * 一行の文字数が80文字以内かを確認します
+   * @param {string[]} lines - テキストの各行を含む配列
+   * @returns {void}
+   */
+  #checkLineLength80(lines) {
+    lines.forEach((line, index) => {
+      if (line.length > 80) this.#push(index, "Exceeds 80 characters");
+    });
+  }
+
+  // 6
   /**
    * 引用の先頭行が二重引用で始まっていないか
    * @param {string[]} orgLines - 修正対象のMarkdownテキスト
@@ -49,7 +62,7 @@ export class SuggestUtil {
       if (quoteRegex.test(line) && isFirstQuote) {
         if (outRegex.test(line)) {
           // errortextをpush
-          this.#push(index, "2重引用ではじまっています");
+          this.#push(index, "Starts with double quotation marks");
         }
         isFirstQuote = false;
       } else if (!quoteRegex.test(line)) {
@@ -67,7 +80,7 @@ export class SuggestUtil {
   #CheckBacktickBalance(lines) {
     lines.forEach((line, index) => {
       // コードブロックはskip
-      if (!/^```/.test(line)) {
+      if (!/^`{3,}/.test(line)) {
         const backtickRegex = /`/g;
         let count = 0;
 
@@ -78,7 +91,7 @@ export class SuggestUtil {
 
         // バッククォートの数が奇数ならばerrorをpush
         if (count % 2 === 1) {
-          this.#push(index, "バッククォートが閉じられていない可能性があります");
+          this.#push(index, "Backticks might not be properly closed");
         }
       }
     });
@@ -132,12 +145,45 @@ export class SuggestUtil {
         if (headings[level].has(title)) {
           this.#push(
             index,
-            `重複する見出しを見つけました: レベル ${level}, タイトル "${title}"`
+            `Duplicate heading: level ${level}, title "${title}"`
           );
         } else {
           headings[level].add(title);
         }
       }
     });
+  }
+
+  #CheckHeadingForContent(orgLines) {
+    // Split the markdown text into lines
+    let currentHeading = null;
+
+    // Iterate through each line
+    for (let i = 0; i < orgLines.length; i++) {
+      const line = orgLines[i].trim();
+
+      // Check if the line is a heading
+      const headingMatch = line.match(/^(#{1,6})\s+(.*)/);
+      if (headingMatch) {
+        // 本文がない場合の処理
+        if (currentHeading && currentHeading.level >= headingMatch[1].length) {
+          this.#push(
+            currentHeading.line,
+            `No body text: level ${currentHeading.level}, title "${currentHeading.title}"`
+          );
+        }
+        // Start tracking the new heading
+        currentHeading = {
+          level: headingMatch[1].length,
+          line: i,
+          title: headingMatch[2],
+        };
+      } else if (currentHeading) {
+        // Check if the current line is not empty, indicating there's content after the heading
+        if (line) {
+          currentHeading = null;
+        }
+      }
+    }
   }
 }

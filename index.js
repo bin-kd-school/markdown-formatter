@@ -11,7 +11,7 @@ export class MdFmtr {
    */
   constructor(markdownText) {
     /**
-     * original markdown text
+     * 元のマークダウンテキスト
      * @type {string}
      */
     this.orgMdText = markdownText;
@@ -23,7 +23,7 @@ export class MdFmtr {
     mdArray = ProofreadUtil.all(mdArray);
     // 最終的に文字列に直す
     /**
-     * fixed markdown text
+     * 修正されたマークダウンテキスト
      * @type {string}
      */
     this.fixedMdText = mdArray.join("\n");
