@@ -13,6 +13,7 @@ export class ProofreadUtil {
     orgLines = pMd.#AddSpaceSymbols(orgLines);
     orgLines = pMd.#UnifyHorizontalLines(orgLines);
     orgLines = pMd.#UnifyBulletListSymbols(orgLines);
+    orgLines = pMd.#AdjustOrderedListNumbers(orgLines);
 
     return orgLines;
   }
@@ -133,5 +134,63 @@ export class ProofreadUtil {
       if (ValidateMd.isStartWithEmphasis(line)) return line;
       return line.replace(/^(\s*)([*+])(\s+)/, "$1-$3");
     });
+  }
+
+  /**
+   * 番号付きリストの番号を連番確認及びソートする
+   * @param {string[]} orgLines - 修正対象のMarkdownテキスト
+   * @returns {string[]} 修正後のMarkdownテキスト
+   */
+  #AdjustOrderedListNumbers(orgLines) {
+    let isInOrderedList = false;
+    let listStartIndex = 0;
+    let listItems = [];
+    let lastListNumberByLevel = {};
+    let currentLevel = 0;
+
+    const adjustList = (levelChange) => {
+      if (listItems.length > 0) {
+        let listNumber = lastListNumberByLevel[currentLevel] || 0;
+        listItems.forEach((item, index) => {
+          const [_, spaces, rest] = item.match(/^(\s*\d+\.\s*)(.*)$/);
+          listNumber += 1;
+          orgLines[listStartIndex + index] =
+            `${spaces.replace(/\d+/, listNumber)}${rest}`;
+        });
+        listItems = [];
+        if (levelChange < 0) lastListNumberByLevel[currentLevel] = 0;
+        else lastListNumberByLevel[currentLevel] = listNumber;
+        currentLevel += levelChange;
+      }
+    };
+
+    let previousLineIndent = 0;
+    orgLines.forEach((line, index) => {
+      const trimmedLine = line.trimStart();
+      const currentLineIndent = line.length - trimmedLine.length;
+
+      if (/^\d+\./.test(trimmedLine)) {
+        if (!isInOrderedList) {
+          isInOrderedList = true;
+          listStartIndex = index;
+        } else if (previousLineIndent !== currentLineIndent) {
+          adjustList(previousLineIndent < currentLineIndent ? 1 : -1);
+          listStartIndex = index;
+        }
+        listItems.push(line);
+      } else {
+        if (isInOrderedList) {
+          adjustList(0);
+          isInOrderedList = false;
+          lastListNumberByLevel = {};
+        }
+      }
+      previousLineIndent = currentLineIndent;
+    });
+
+    // 最後の番号付きリストを調整
+    adjustList(0);
+
+    return orgLines;
   }
 }
