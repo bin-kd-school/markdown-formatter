@@ -22,6 +22,8 @@ export class SuggestUtil {
     sMd.#CheckBacktickBalance(orgLines);
     sMd.#CheckDuplicateHeadings(orgLines);
     sMd.#CheckHeadingForContent(orgLines);
+    sMd.#checkLineLength80(orgLines);
+    sMd.#IsMarkdownBalanced(orgLines);
 
     return sMd.errors;
   }
@@ -185,5 +187,39 @@ export class SuggestUtil {
         }
       }
     }
+  }
+
+  /**
+   * マークダウンの強調タグ（* および _）が同じ数で閉じられているかどうかを確認する
+   * @param {string[]} orgLines - 検査対象のMarkdownテキストの配列
+   * @returns {void}
+   */
+  #IsMarkdownBalanced(orgLines) {
+    const patterns = [{ Regex: /\*+/g }, { Regex: /_+/g }];
+
+    orgLines.forEach((line, index) => {
+      patterns.forEach(({ Regex }) => {
+        let match;
+        let stack = [];
+
+        // 各パターンの検索を先頭から開始
+        Regex.lastIndex = 0;
+
+        while ((match = Regex.exec(line)) !== null) {
+          if (stack.length === 0 || stack[stack.length - 1] !== match[0]) {
+            // 開始タグをスタックに追加
+            stack.push(match[0]);
+          } else {
+            // 終了タグでスタックからポップ
+            stack.pop();
+          }
+        }
+
+        // スタックが空でない場合、バランスしていない
+        if (stack.length !== 0) {
+          this.#push(index, "Emphasis tags are not closed properly");
+        }
+      });
+    });
   }
 }

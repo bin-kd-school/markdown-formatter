@@ -125,7 +125,7 @@ export class ProofreadUtil {
   }
 
   /**
-   * Markdownテキストの箇条書きリストの記号をハイフンに統一します。
+   * Markdownテキストの箇条書きリストの記号をハイフンに統一
    * @param {string[]} orgLines - Markdown形式のテキストの各行を含む配列
    * @returns {string[]} - 記号が統一されたMarkdown形式のテキストの各行を含む配列
    */

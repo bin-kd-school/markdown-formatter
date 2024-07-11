@@ -5,7 +5,7 @@ export class ValidateMd {
    * @returns {boolean} - 強調記号で始まっている場合はtrue、そうでない場合はfalse
    */
   static isStartWithEmphasis(line) {
-    const emphasisRegex = /^\s*[*_]+[^*_]+[*_]+/g;
+    const emphasisRegex = /^\s*[*_]+[^\s*_]+[*_]+/g;
     return emphasisRegex.test(line);
   }
 
