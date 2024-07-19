@@ -47,7 +47,6 @@ export class SuggestUtil {
     });
   }
 
-  // 6
   /**
    * 引用の先頭行が二重引用で始まっていないか
    * @param {string[]} orgLines - 修正対象のMarkdownテキスト
