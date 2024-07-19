@@ -1,0 +1,25 @@
+{
+  "name": "markdown-formatter",
+  "version": "1.0.0",
+  "description": "A library to proofread markdown",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test/mdfmtrTest.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bin-kd-school/markdown-formatter.git"
+  },
+  "keywords": [
+    "markdown",
+    "md",
+    "formatter"
+  ],
+  "author": "jumpei makanai, kouta kataoka, haruki enrike sasaki",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bin-kd-school/markdown-formatter/issues"
+  },
+  "homepage": "https://github.com/bin-kd-school/markdown-formatter#readme"
+}
