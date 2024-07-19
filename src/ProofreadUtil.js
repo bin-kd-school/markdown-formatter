@@ -13,7 +13,9 @@ export class ProofreadUtil {
     orgLines = pMd.#AddSpaceSymbols(orgLines);
     orgLines = pMd.#UnifyHorizontalLines(orgLines);
     orgLines = pMd.#UnifyBulletListSymbols(orgLines);
+    orgLines = pMd.#UnifyAsterisks(orgLines);
     orgLines = pMd.#AdjustOrderedListNumbers(orgLines);
+    orgLines = pMd.#AddLineBreaks(orgLines);
 
     return orgLines;
   }
@@ -84,8 +86,8 @@ export class ProofreadUtil {
       // 箇条書きリストと番号付きリストは
       // インデントを考慮する必要があるので
       // 任意の数の空白を最初に入れる
-      { regex: /^( *)([-*+]{1})\s*/, replacement: "$1$2 " }, // 箇条書き
-      { regex: /^( *)(\d+\.)\s*/, replacement: "$1$2 " }, // 番号付きリスト
+      { regex: /^(\s*)([-*+]{1})\s*/, replacement: "$1$2 " }, // 箇条書き
+      { regex: /^(\s*)(\d+\.)\s*/, replacement: "$1$2 " }, // 番号付きリスト
       { regex: /^(#{1,6})\s*/, replacement: "$1 " }, //見出し
       { regex: /^(>+)\s*/, replacement: "$1 " }, // 引用
     ];
@@ -133,6 +135,44 @@ export class ProofreadUtil {
     return orgLines.map((line) => {
       if (ValidateMd.isStartWithEmphasis(line)) return line;
       return line.replace(/^(\s*)([*+])(\s+)/, "$1-$3");
+    });
+  }
+
+  /**
+   * 強調を `*` に統一する (閉じられていれば実行)
+   * @param {string} orgLines - 処理対象のMarkdownテキスト
+   * @returns {string} - `*` に統一されたMarkdownテキスト
+   */
+  #UnifyAsterisks(orgLines) {
+    const regex = /_+/g;
+
+    return orgLines.map((line) => {
+      let match;
+      let stack = [];
+      regex.lastIndex = 0;
+
+      // 強調記号をスタックに追加または削除
+      while ((match = regex.exec(line)) !== null) {
+        if (stack.length % 2 === 0 || stack[stack.length - 1][0] === match[0]) {
+          stack.push(match);
+        } else {
+          stack.pop();
+        }
+      }
+
+      // スタックのサイズが奇数の場合、最後の要素を削除
+      if (stack.length % 2 === 1) stack.pop();
+
+      // スタックの要素を `*` に置き換え
+      stack.forEach((matched) => {
+        const first = matched.index;
+        const end = matched.index + matched[0].length;
+        const before = line.slice(0, first);
+        const after = line.slice(end);
+        line = before + "*".repeat(matched[0].length) + after;
+      });
+
+      return line;
     });
   }
 
@@ -190,6 +230,84 @@ export class ProofreadUtil {
 
     // 最後の番号付きリストを調整
     adjustList(0);
+
+    return orgLines;
+  }
+
+  /**
+   * 見出しやリストなど記法の分かれ目や見出しとそこに属する本文との境に改行を挿入する
+   * @param {string} orgLine - 処理対象のMarkdownテキスト
+   * @returns {string} - 改行を追加したMarkdownテキスト
+   */
+  #AddLineBreaks(orgLines) {
+    // 正規表現パターンを定義
+    const headingPattern = /^(#{1,6})\s.*$/; // 見出しのパターン
+    const listPattern = /^\s*(\*|-|\+)\s.*$/; // リストのパターン
+    const numListPattern = /^\s*(\d\.)\s.*$/; // 番号付きリスト
+    const blockquotesPattern = /^\s*>+\s.*/;
+
+    // リストの連続性を判定する関数
+    function areListsContinuous(line1, line2) {
+      // 前の行と現在の行がどちらも箇条書きリストであることを確認
+      line1 = line1.replace(/\n+/, "");
+      return listPattern.test(line1) && listPattern.test(line2);
+    }
+    function areNumListsContinuous(line1, line2) {
+      // 前の行と現在の行がどちらも番号付きリストであることを確認
+      line1 = line1.replace(/\n+/, "");
+      return numListPattern.test(line1) && numListPattern.test(line2);
+    }
+    function areAllListContinuous(line1, line2) {
+      // 前の行と現在の行が箇条書きと番号付きで0階層か確認
+      line1 = line1.replace(/\n+/, "");
+      if (!listPattern.test(line1) && !numListPattern.test(line1)) return false;
+      if (!listPattern.test(line2) && !numListPattern.test(line2)) return false;
+      if (line2.length == line2.trimStart().length) return false;
+      else return true;
+    }
+    function areHorizontalContinuous(line1, line2) {
+      // 前の行と現在の行が箇条書きと番号付きで0階層か確認
+      line1 = line1.replace(/\n+/, "");
+      return ValidateMd.isHorizon(line1) && ValidateMd.isHorizon(line2);
+    }
+    function areBlockquoteContinuous(line1, line2) {
+      // 前の行と現在の行が箇条書きと番号付きで0階層か確認
+      line1 = line1.replace(/\n+/, "");
+      return blockquotesPattern.test(line1) && blockquotesPattern.test(line2);
+    }
+    function notPatternContinuous(line1, line2) {
+      line1 = line1.replace(/\n+/, "");
+      return (
+        !listPattern.test(line1) &&
+        !numListPattern.test(line1) &&
+        !headingPattern.test(line1) &&
+        !ValidateMd.isHorizon(line1) &&
+        !blockquotesPattern.test(line1) &&
+        !listPattern.test(line2) &&
+        !numListPattern.test(line2) &&
+        !headingPattern.test(line2) &&
+        !ValidateMd.isHorizon(line2) &&
+        !blockquotesPattern.test(line2)
+      );
+    }
+
+    // 改行を削除してから適切な位置に改行を挿入する
+    for (let i = 1; i < orgLines.length; i++) {
+      // 改行のみの場合は飛ばす
+      if (orgLines[i - 1].trim() == "" || orgLines[i].trim() == "") continue;
+
+      // リストが連続している場合は改行を挿入しない
+      if (areListsContinuous(orgLines[i - 1], orgLines[i])) continue;
+      if (areNumListsContinuous(orgLines[i - 1], orgLines[i])) continue;
+      if (areAllListContinuous(orgLines[i - 1], orgLines[i])) continue;
+      if (areHorizontalContinuous(orgLines[i - 1], orgLines[i])) continue;
+      if (areBlockquoteContinuous(orgLines[i - 1], orgLines[i])) continue;
+      if (notPatternContinuous(orgLines[i - 1], orgLines[i])) continue;
+      orgLines[i] = `\n${orgLines[i]}`;
+    }
+
+    // 最後の行に改行を追加する
+    orgLines[orgLines.length - 1] = `${orgLines[orgLines.length - 1]}\n`;
 
     return orgLines;
   }
