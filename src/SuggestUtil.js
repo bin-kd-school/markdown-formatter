@@ -155,6 +155,11 @@ export class SuggestUtil {
     });
   }
 
+  /**
+   * 本文の有無を確認
+   * @param {string[]} orgLines - Markdown形式のテキストの各行を含む配列
+   * @returns {void}
+   */
   #CheckHeadingForContent(orgLines) {
     // Split the markdown text into lines
     let currentHeading = null;
