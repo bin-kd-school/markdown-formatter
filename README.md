@@ -26,7 +26,9 @@ A library to proofread markdown
    ```
 
 > 通常のjsファイルでは`import`をただ記入してもエラーが出るので、
+>
 > https://qiita.com/Philosophistoria/items/1df484e658c019b56ea9
+>
 > 以上のサイトを参考に`import`してください
 
 ```
