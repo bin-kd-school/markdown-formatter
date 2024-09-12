@@ -11,7 +11,7 @@ A library to proofread markdown
 2. モジュールを使用するファイルにて`import`
 
    ```js
-   import { MdFmtr } from "./markdown-formatter";
+   import { MdFmtr } from "./modules/markdown-formatter/index.mjs";
    ```
 
 3. 引数に校正したいマークダウンの文章を入れる
