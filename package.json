@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A library to proofread markdown",
   "type": "module",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
     "test": "node ./test/mdfmtrTest.js"
   },

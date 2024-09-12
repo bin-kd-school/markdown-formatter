@@ -23,6 +23,12 @@ A library to proofread markdown
    console.log(mdfmtr.errors);
    ```
 
+> 通常のjsファイルでは`import`をただ記入してもエラーが出るので、
+> https://qiita.com/Philosophistoria/items/1df484e658c019b56ea9
+> 以上のサイトを参考に`import`してください
+
+```
+
 # 仕様
 
 ## 修正
@@ -43,3 +49,4 @@ A library to proofread markdown
 - 見出しの同じ階層に同じタイトルがないかをチェックし、重複する見出しを検出
 - 本文の有無を確認
 - 強調タグ（\* および \_）が同じ数で閉じられているかどうかを確認
+```

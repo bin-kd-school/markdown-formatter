@@ -10,6 +10,9 @@ export class MdFmtr {
    * @param {string} markdownText
    */
   constructor(markdownText) {
+    // 文字列でなければ処理はしない
+    if (typeof markdownText != "string") return;
+
     /**
      * 元のマークダウンテキスト
      * @type {string}
