@@ -17,6 +17,8 @@ A library to proofread markdown
 3. 引数に校正したいマークダウンの文章を入れる
    ```js
    const mdfmtr = new MdFmtr(argStr());
+   // 引数に渡された元の文章
+   console.log(mdfmtr.orgMdText);
    // 校正された文章
    console.log(mdfmtr.fixedMdText);
    // 修正が期待される個所のエラー文
